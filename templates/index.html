@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kafka Web Interface</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Kafka Web Interface</h1>
+    </header>
+
+    <form id="sendMessageForm">
+        <input type="text" id="messageInput" placeholder="Enter message" required>
+        <button type="submit">Send</button>
+    </form>
+    <p class="status" id="status"></p>
+
+    <h2>Received Messages</h2>
+    <div id="messages">
+        {% for message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+    </div>
+
+    <form id="clearTopicForm">
+        <button type="submit">Clear Topic</button>
+    </form>
+
+    <script>
+        const socket = io.connect();
+
+        // Lắng nghe sự kiện 'new_message'
+        socket.on('new_message', function(data) {
+            console.log("New message received:", data.message); // Kiểm tra xem có nhận được sự kiện từ server không
+            const messageDiv = $('<div class="message"></div>').text(data.message);
+            $('#messages').append(messageDiv);  // Thêm thông điệp vào bảng
+        });
+
+
+
+
+        // Xử lý gửi thông điệp
+        $('#sendMessageForm').submit(function(e) {
+            e.preventDefault();
+            const message = $('#messageInput').val();
+            $.post('/send', { message: message }, function(response) {
+                if (response.status === 'success') {
+                    $('#status').text(response.message).css('color', 'green');
+                    $('#messageInput').val('');
+                } else {
+                    $('#status').text(response.message).css('color', 'red');
+                }
+            });
+        });
+
+        // Xử lý xóa nội dung khi nhấn nút Clear Topic
+        $('#clearTopicForm').submit(function(e) {
+            e.preventDefault();
+            $.post('/clear_topic', function(response) {
+                // Cập nhật lại thông báo
+                alert(response.message);
+
+                // Xóa bảng hiển thị các thông điệp
+                $('#messages').empty();
+            });
+        });
+
+    </script>
+</body>
+</html>
