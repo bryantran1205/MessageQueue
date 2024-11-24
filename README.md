@@ -1,3 +1,7 @@
+# Prepare
+
+pip install flask flask-socketio confluent-kafka
+
 # MessageQueue
 
 Step 1: docker-compose up -d
